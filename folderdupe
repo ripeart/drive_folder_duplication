@@ -1,0 +1,201 @@
+const MASTER_TEMPLATES_FOLDER_ID = '1TcBn8fdT3ZQP9W_JSnIhN_rBYPpK-5zV'; 
+
+function doGet() {
+  const templates = getTemplateList();
+  const templateOptions = templates.length > 0 
+    ? templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('')
+    : `<option value="" disabled>No templates found</option>`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+        <style>
+          :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.12);
+          }
+          
+          body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg);
+            background-image: 
+              radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.18) 0px, transparent 50%),
+              radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.18) 0px, transparent 50%);
+            height: 100vh; margin: 0; 
+            display: flex; justify-content: center; align-items: center;
+            color: white;
+            overflow: hidden;
+          }
+
+          /* The Fancy Glass Card */
+          .glass-card { 
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 50px; border-radius: 32px; 
+            max-width: 480px; width: 90%; text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.8s ease-out;
+          }
+
+          @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+          h2 { font-weight: 600; letter-spacing: -0.03em; margin: 0 0 10px 0; font-size: 30px; }
+          p { color: #94a3b8; line-height: 1.6; margin-bottom: 35px; font-size: 14px; }
+          .label { text-align: left; display: block; font-size: 10px; font-weight: 800; color: #818cf8; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1.5px; }
+
+          /* Choices.js Dark Mode Overrides */
+          .choices { margin-bottom: 28px; text-align: left; }
+          .choices__inner { 
+            background: rgba(0, 0, 0, 0.4) !important; 
+            border-radius: 14px !important; 
+            border: 1px solid var(--border) !important; 
+            color: white !important; font-size: 15px !important;
+            padding: 10px !important; transition: all 0.3s;
+          }
+          .choices.is-focused .choices__inner { border-color: var(--primary) !important; }
+          .choices__list--dropdown { 
+            background: #111827 !important; 
+            border: 1px solid var(--border) !important; 
+            border-radius: 14px !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+          }
+          .choices__list--dropdown .choices__item--selectable.is-highlighted { background-color: var(--primary) !important; }
+          .choices__input { background-color: transparent !important; color: white !important; font-size: 14px !important; }
+
+          /* Fancy Input Field */
+          input#folderName { 
+            width: 100%; padding: 16px; 
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border); 
+            border-radius: 14px; color: white;
+            font-size: 16px; transition: all 0.3s; outline: none;
+            box-sizing: border-box; margin-bottom: 28px;
+          }
+          input#folderName:focus { border-color: var(--primary); background: rgba(0, 0, 0, 0.5); }
+          
+          /* Modern Button */
+          button { 
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white; border: none; padding: 18px; border-radius: 14px; 
+            font-weight: 600; cursor: pointer; font-size: 16px; width: 100%; 
+            transition: all 0.3s ease; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+          }
+          button:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4); }
+          button:active { transform: translateY(0); }
+          button:disabled { background: #1e293b; color: #475569; cursor: not-allowed; transform: none; box-shadow: none; }
+
+          .error { color: #f43f5e; font-size: 12px; margin-top: -22px; margin-bottom: 22px; text-align: left; display: none; font-weight: 500; }
+          #loader { display: none; border: 3px solid rgba(255,255,255,0.05); border-top: 3px solid var(--primary); border-radius: 50%; width: 28px; height: 28px; animation: spin 0.8s linear infinite; margin: 20px auto; }
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+          
+          .success-badge { background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 6px 14px; border-radius: 100px; font-size: 12px; display: inline-block; margin-bottom: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        </style>
+      </head>
+      <body>
+        <div class="glass-card">
+          <div id="form-ui">
+            <h2>Copy Template</h2>
+            <p>Select a folder structure to clone into your personal Google Drive.</p>
+            
+            <span class="label">Source Template</span>
+            <select id="templateId">${templateOptions}</select>
+
+            <span class="label">New Folder Name</span>
+            <input type="text" id="folderName" placeholder="Enter folder name..." oninput="validateName()">
+            <div id="errorMsg" class="error">Invalid name: Avoid / \\ : * ? " < > |</div>
+
+            <button id="submitBtn" onclick="process()">Create Copy in My Drive</button>
+            <div id="loader"></div>
+          </div>
+
+          <div id="success-ui" style="display:none;">
+            <div class="success-badge">Success</div>
+            <h2>Folder Ready</h2>
+            <p>Your directory has been generated. You can now access it in your Drive.</p>
+            <button onclick="window.open(document.getElementById('folderUrl').href, '_blank')">Open Folder</button>
+            <a id="folderUrl" href="#" style="display:none;"></a>
+            <p style="margin-top:30px;"><a href="javascript:location.reload()" style="color:#818cf8; text-decoration:none; font-weight:600; font-size: 13px;">Create another copy</a></p>
+          </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+        <script>
+          const choices = new Choices('#templateId', {
+            searchEnabled: true,
+            itemSelectText: '',
+            shouldSort: false,
+            placeholderValue: 'Search templates...'
+          });
+
+          function validateName() {
+            const name = document.getElementById('folderName').value;
+            const regex = /^[^\/\\:*?"<>|]+$/;
+            const isValid = regex.test(name) && name.trim().length > 0;
+            document.getElementById('errorMsg').style.display = (name && !isValid) ? 'block' : 'none';
+            document.getElementById('submitBtn').disabled = !isValid;
+            return isValid;
+          }
+
+          function process() {
+            const name = document.getElementById('folderName').value;
+            const id = document.getElementById('templateId').value;
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('loader').style.display = 'block';
+            
+            google.script.run
+              .withSuccessHandler(url => {
+                document.getElementById('form-ui').style.display = 'none';
+                document.getElementById('success-ui').style.display = 'block';
+                document.getElementById('folderUrl').href = url;
+              })
+              .startCopyProcess(id, name);
+          }
+        </script>
+      </body>
+    </html>
+  `;
+  return HtmlService.createHtmlOutput(html).setTitle("Drive Template Copier");
+}
+
+function getTemplateList() {
+  const list = [];
+  try {
+    const parentFolder = DriveApp.getFolderById(MASTER_TEMPLATES_FOLDER_ID);
+    const subfolders = parentFolder.getFolders();
+    while (subfolders.hasNext()) {
+      const folder = subfolders.next();
+      list.push({ name: folder.getName(), id: folder.getId() });
+    }
+  } catch (e) { console.error(e.toString()); }
+  return list.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function startCopyProcess(templateId, newName) {
+  const sourceFolder = DriveApp.getFolderById(templateId);
+  const rootFolder = DriveApp.getRootFolder();
+  const newFolder = rootFolder.createFolder(newName);
+  copyRecursive(sourceFolder, newFolder);
+  return newFolder.getUrl();
+}
+
+function copyRecursive(source, target) {
+  const files = source.getFiles();
+  while (files.hasNext()) {
+    const file = files.next();
+    file.makeCopy(file.getName(), target);
+  }
+  const subFolders = source.getFolders();
+  while (subFolders.hasNext()) {
+    const sub = subFolders.next();
+    const newSub = target.createFolder(sub.getName());
+    copyRecursive(sub, newSub);
+  }
+}
