@@ -1,4 +1,4 @@
-const MASTER_TEMPLATES_FOLDER_ID = '1TcBn8fdT3ZQP9W_JSnIhN_rBYPpK-5zV'; 
+const MASTER_TEMPLATES_FOLDER_ID = 'FOLDER_ID_HERE'; 
 
 function doGet() {
   const templates = getTemplateList();
