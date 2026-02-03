@@ -1,3 +1,6 @@
+<img width="1151" height="634" alt="image" src="https://github.com/user-attachments/assets/26b62433-a49c-4bc3-93f9-a580e7c26c4b" />
+
+
 # Google Drive Folder Template Copier
 
 A modern, glassmorphic web application built with Google Apps Script. This tool allows users to select a directory structure from a central Templates folder and clone it directly into their own Google Drive with a custom name.
