@@ -1,33 +1,74 @@
-<img width="1151" height="634" alt="image" src="https://github.com/user-attachments/assets/26b62433-a49c-4bc3-93f9-a580e7c26c4b" />
+<img width="970" height="676" alt="image" src="https://github.com/user-attachments/assets/1d2bd8e0-7218-4e27-90ce-dcc558199044" />
 
+📂 Enterprise Workspace Replicator
+A high-performance Google Apps Script (GAS) web application designed for standardized project onboarding. This tool allows users to replicate complex folder structures from their Google Drive root or a specific Folder ID into a new, named instance with a streamlined, multi-step wizard interface.
 
-# Google Drive Folder Template Copier
+✨ Features
+5-Step Enterprise Wizard: Guided process including Source Selection, Project Details, Content Preview, Replication, and Success confirmation.
 
-A modern, glassmorphic web application built with Google Apps Script. This tool allows users to select a directory structure from a central Templates folder and clone it directly into their own Google Drive with a custom name.
+Dynamic Source Selection:
 
----
+Root Drive Explorer: Automatically fetches folders from the user's Drive root.
 
-## Features
+Subfolder Navigation: Cascading dropdowns allow users to drill down into a specific parent folder to select a template.
 
-* **Dynamic Template Discovery**: Automatically scans a specific Google Drive folder for subfolders to use as templates.
-* **Searchable Dropdown**: Powered by Choices.js for quick filtering of template lists.
-* **Safety Validation**: Built-in Regex validation to prevent illegal characters in Google Drive folder names.
-* **Premium UI**: A high-end dark mode interface featuring frosted glass effects, mesh gradients, and smooth animations.
-* **User-Centric Execution**: Clones folders directly into the My Drive of the user accessing the app.
+Folder ID Entry: Support for manual ID input for shared or deep-directory templates.
 
----
+Live Content Preview: Fetches a real-time list of files and folders within the source template to ensure accuracy before cloning.
 
-## Deployment Guide
+Recursive Replication Engine: Deep-copies all files and subdirectories while maintaining the original structure.
 
-### 1. Prepare your Templates
-1. Create a folder in Google Drive to hold all your templates.
-2. Each subfolder inside this Master folder will appear as an option in the app dropdown menu.
-3. **Important**: Share this Master folder with your organization with at least **Viewer** access.
-4. Copy the Folder ID from the URL (the string of characters after `folders/`).
+Haptic Audio Feedback: Integration of the Web Audio API to generate a quiet, professional mechanical "click" on primary actions without external dependencies.
 
-### 2. Setup the Script
-1. Go to the [Google Apps Script dashboard](https://script.google.com) and create a New Project.
-2. Paste the code from `Code.gs` into the editor.
-3. Replace the `MASTER_TEMPLATES_FOLDER_ID` constant at the top with your Folder ID:
-   ```javascript
-   const MASTER_TEMPLATES_FOLDER_ID = 'YOUR_FOLDER_ID_HERE';
+State-Driven UI: A single-page application (SPA) feel using CSS transitions and JavaScript state management to prevent browser reloads.
+
+🚀 Tech Stack
+Backend: Google Apps Script (V8 Engine)
+
+Frontend: HTML5, CSS3 (Flexbox/Grid), JavaScript (ES6+)
+
+APIs: Google Drive API, Web Audio API
+
+Typography: Inter (via Google Fonts)
+
+🛠️ Installation & Setup
+Create a New Project:
+
+Go to script.google.com and create a new project.
+
+Add the Code:
+
+Copy the contents of Code.gs from this repository into the script editor.
+
+Deploy as Web App:
+
+Click Deploy > New Deployment.
+
+Select Web App.
+
+Set Execute as: Me.
+
+Set Who has access: Anyone within [Your Organization] (or Anyone for public use).
+
+Authorize:
+
+Grant the necessary permissions to access your Google Drive when prompted.
+
+📖 Usage
+Step 1 (Source): Choose to browse your root Drive or paste a specific Folder ID. If browsing, select a parent and optionally a subfolder.
+
+Step 2 (Details): Enter the name for your new workspace instance.
+
+Step 3 (Preview): Verify the files listed are the correct template assets.
+
+Step 4 (Copying): Wait for the system to synchronize and replicate the directory.
+
+Step 5 (Success): Open your new folder directly via the generated link or reset the wizard to create another instance.
+
+🔒 Security & Privacy
+No Data Storage: This application does not store user data. It acts as a bridge between the source and destination folders within the user's own Google Drive.
+
+Authorization: The script only accesses folders the user has explicit permission to view or edit.
+
+📄 License
+Distributed under the MIT License. See LICENSE for more information.
