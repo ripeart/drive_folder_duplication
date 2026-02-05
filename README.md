@@ -1,3 +1,74 @@
 <img width="970" height="676" alt="image" src="https://github.com/user-attachments/assets/1d2bd8e0-7218-4e27-90ce-dcc558199044" />
 
-Workspace Replicator for Google DriveOverviewThe Workspace Replicator is a professional-grade Google Apps Script (GAS) application designed to standardize the project onboarding process within organizations. It provides a structured, five-step wizard that allows users to replicate complex folder hierarchies from their own Google Drive root or a specific Folder ID into a new, validated instance.Key FunctionalitiesAdvanced Source DiscoveryRoot Directory Integration: Automatically scans the user's Google Drive root to populate the initial selection list.Dynamic Subfolder Navigation: Includes a cascading dropdown system that fetches sub-directories in real-time once a parent folder is selected.Manual Identifier Support: Allows for the direct input of a Folder ID to clone templates shared from external sources or deep-directory structures.Verification and SafetyLive Preview Engine: Accesses the source template to display a subset of its contents (files and subfolders) before the replication process begins.Recursive Cloning: Utilizes a deep-copy algorithm to ensure all nested assets and folder structures are preserved in the new destination.User ExperienceHaptic Audio Feedback: Uses the Web Audio API to generate a localized, low-volume mechanical click for primary navigation actions.SPA Architecture: Managed as a Single Page Application to ensure fast transitions between steps without full-page browser reloads.Persistent State Management: Maintains user selections across the wizard steps, allowing for easy "Back" navigation and data validation.Technical SpecificationsComponentTechnologyBackend EnvironmentGoogle Apps Script (V8 Engine)User InterfaceHTML5, CSS3 (Custom Properties), JavaScript (ES6+)Google APIsDriveApp (Native GAS Service)Audio ProcessingWeb Audio API (Triangle Oscillator)TypographyInter (Standard Enterprise Sans-Serif)Installation and DeploymentScript SetupOpen the Google Apps Script Dashboard.Create a new project and replace the contents of Code.gs with the provided application code.Save the project with a descriptive name.Web App ConfigurationNavigate to Deploy > New Deployment.Select Web App as the deployment type.Set the following configurations:Execute as: Me (your account)Who has access: Anyone with a Google account (or restricted to your Workspace domain)Copy the generated Web App URL for distribution.Operational WorkflowStep 1: Source IdentificationUsers choose between browsing their root Drive or entering a specific ID. If browsing, a secondary dropdown appears to optionally select a subfolder.Step 2: Resource NamingThe user provides a unique name for the new folder. Input validation ensures that the "Next" action remains disabled until a name is provided.Step 3: Audit and PreviewThe application fetches the template structure. The user reviews the file list to confirm they are cloning the correct project environment.Step 4: System ReplicationThe backend initiates the copyRecursive process. A visual spinner is displayed during this high-latency operation.Step 5: Provisioning CompleteA confirmation screen provides a direct link to the new folder. The "Create Another Instance" option allows for a full state reset to start the process over.Security and ComplianceOrganization-Centric: By deploying within a Google Workspace, the tool respects all existing Drive permissions and data loss prevention (DLP) policies.Zero-Data Storage: The application does not store information on external databases; all operations are performed directly between the source and target directories within the Google ecosystem.Scoped Access: The script only interacts with data the authenticated user has explicit permissions to access.
+# Workspace Replicator for Google Drive
+
+A professional-grade **Google Apps Script (GAS)** application designed to standardize project onboarding. This tool provides a structured, five-step wizard for replicating complex folder hierarchies from a user's Drive root or a specific Folder ID into a new, validated instance.
+
+---
+
+## Key Functionalities
+
+### Advanced Source Discovery
+* **Root Directory Integration**: Automatically scans the user's Google Drive root to populate the initial selection list.
+* **Dynamic Subfolder Navigation**: Includes a cascading dropdown system that fetches sub-directories in real-time once a parent folder is selected.
+* **Manual Identifier Support**: Allows for the direct input of a Folder ID to clone templates shared from external sources or deep-directory structures.
+
+### Verification and Safety
+* **Live Preview Engine**: Accesses the source template to display a subset of its contents (files and subfolders) before replication begins.
+* **Recursive Cloning**: Utilizes a deep-copy algorithm to ensure all nested assets and folder structures are preserved in the destination.
+
+### User Experience
+* **Haptic Audio Feedback**: Uses the **Web Audio API** to generate a localized, low-volume mechanical click for primary navigation actions.
+* **SPA Architecture**: Managed as a Single Page Application to ensure fast transitions without full-page browser reloads.
+* **Persistent State Management**: Maintains user selections across the wizard, allowing for easy "Back" navigation and data validation.
+
+---
+
+## Technical Specifications
+
+| Component | Technology |
+| :--- | :--- |
+| **Backend Environment** | Google Apps Script (V8 Engine) |
+| **User Interface** | HTML5, CSS3 (Custom Properties), JavaScript (ES6+) |
+| **Google APIs** | DriveApp (Native GAS Service) |
+| **Audio Processing** | Web Audio API (Triangle Oscillator) |
+| **Typography** | Inter (Standard Enterprise Sans-Serif) |
+
+---
+
+## Installation and Deployment
+
+### Script Setup
+1. Open the [Google Apps Script Dashboard](https://script.google.com).
+2. Create a new project and replace the contents of `Code.gs` with the provided application code.
+3. Save the project with a descriptive name.
+
+### Web App Configuration
+1. Navigate to **Deploy** > **New Deployment**.
+2. Select **Web App** as the deployment type.
+3. Set the following configurations:
+   * **Execute as**: Me (your account)
+   * **Who has access**: Anyone with a Google account (or restricted to your Workspace domain)
+4. Copy the generated **Web App URL** for distribution.
+
+---
+
+## Operational Workflow
+
+1. **Step 1: Source Identification**: Choose between browsing the root Drive or entering a specific ID. A secondary dropdown appears for subfolder selection.
+2. **Step 3: Resource Naming**: Provide a unique name for the new folder. Validation ensures the "Next" button remains disabled until a name is entered.
+3. **Step 3: Audit and Preview**: The system fetches the template structure for user review to confirm the correct project environment.
+4. **Step 4: System Replication**: The backend initiates the `copyRecursive` process. A visual spinner is displayed during this high-latency operation.
+5. **Step 5: Provisioning Complete**: A confirmation screen provides a direct link to the new folder. The "Create Another Instance" option allows for a full state reset.
+
+---
+
+## Security and Compliance
+* **Organization-Centric**: Respects existing Google Workspace Drive permissions and Data Loss Prevention (DLP) policies.
+* **Zero-Data Storage**: The application does not store information on external databases; all operations are performed directly within the Google ecosystem.
+* **Scoped Access**: The script only interacts with data the authenticated user has explicit permissions to access.
+
+---
+
+## License
+This project is licensed under the MIT License.
