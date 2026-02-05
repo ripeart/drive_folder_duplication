@@ -1,181 +1,366 @@
-const MASTER_TEMPLATES_FOLDER_ID = 'FOLDER_ID_HERE'; 
+/**
+ * ENTERPRISE ONBOARDING WIZARD v3.5
+ * Fix: 'Create Another Instance' now resets the UI state without blanking.
+ * UI: Dynamic My Drive -> Subfolder selection.
+ * Audio: Refined quiet mechanical click.
+ */
 
 function doGet() {
-  const templates = getTemplateList();
-  const templateOptions = templates.length > 0 
-    ? templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('')
-    : `<option value="" disabled>No templates found</option>`;
+  const rootFolders = getUserRootFolders();
+  const rootOptions = rootFolders.length > 0 
+    ? rootFolders.map(f => `<option value="${f.id}">${f.name}</option>`).join('')
+    : `<option value="" disabled>No folders found in Drive root</option>`;
 
   const html = `
     <!DOCTYPE html>
     <html>
       <head>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
         <style>
           :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg: #0f172a;
-            --glass: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.12);
+            --primary: #63C2A6;
+            --primary-hover: #52a890;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #334155;
+            --text-muted: #64748b;
           }
           
           body { 
-            font-family: 'Inter', sans-serif; 
-            background: var(--bg);
-            background-image: 
-              radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.18) 0px, transparent 50%),
-              radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.18) 0px, transparent 50%);
-            height: 100vh; margin: 0; 
-            display: flex; justify-content: center; align-items: center;
-            color: white;
+            font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main);
+            margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh;
             overflow: hidden;
           }
 
-          /* The Fancy Glass Card */
-          .glass-card { 
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            padding: 50px; border-radius: 32px; 
-            max-width: 480px; width: 90%; text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            animation: fadeIn 0.8s ease-out;
+          .modal-container {
+            background: var(--bg-card); width: 95%; max-width: 850px; height: 580px;
+            border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border);
           }
 
-          @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-          h2 { font-weight: 600; letter-spacing: -0.03em; margin: 0 0 10px 0; font-size: 30px; }
-          p { color: #94a3b8; line-height: 1.6; margin-bottom: 35px; font-size: 14px; }
-          .label { text-align: left; display: block; font-size: 10px; font-weight: 800; color: #818cf8; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1.5px; }
-
-          /* Choices.js Dark Mode Overrides */
-          .choices { margin-bottom: 28px; text-align: left; }
-          .choices__inner { 
-            background: rgba(0, 0, 0, 0.4) !important; 
-            border-radius: 14px !important; 
-            border: 1px solid var(--border) !important; 
-            color: white !important; font-size: 15px !important;
-            padding: 10px !important; transition: all 0.3s;
+          .stepper {
+            display: flex; justify-content: space-between; padding: 25px 50px;
+            border-bottom: 1px solid #f1f5f9; background: #fff;
           }
-          .choices.is-focused .choices__inner { border-color: var(--primary) !important; }
-          .choices__list--dropdown { 
-            background: #111827 !important; 
-            border: 1px solid var(--border) !important; 
-            border-radius: 14px !important;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+          .step { display: flex; align-items: center; font-size: 11px; color: #cbd5e1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+          .step-num {
+            width: 20px; height: 20px; border-radius: 50%; background: #e2e8f0;
+            color: white; display: flex; align-items: center; justify-content: center; margin-right: 8px; font-size: 10px;
           }
-          .choices__list--dropdown .choices__item--selectable.is-highlighted { background-color: var(--primary) !important; }
-          .choices__input { background-color: transparent !important; color: white !important; font-size: 14px !important; }
+          .step.active { color: var(--primary); }
+          .step.active .step-num { background: var(--primary); }
+          .step.completed { color: var(--text-main); }
+          .step.completed .step-num { background: #94a3b8; }
 
-          /* Fancy Input Field */
-          input#folderName { 
-            width: 100%; padding: 16px; 
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border); 
-            border-radius: 14px; color: white;
-            font-size: 16px; transition: all 0.3s; outline: none;
-            box-sizing: border-box; margin-bottom: 28px;
-          }
-          input#folderName:focus { border-color: var(--primary); background: rgba(0, 0, 0, 0.5); }
+          .content { flex-grow: 1; padding: 40px 60px; overflow-y: auto; display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+          .step-pane { display: none; width: 100%; animation: fadeIn 0.3s ease-out; }
+          .step-pane.active { display: block; }
           
-          /* Modern Button */
-          button { 
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            color: white; border: none; padding: 18px; border-radius: 14px; 
-            font-weight: 600; cursor: pointer; font-size: 16px; width: 100%; 
-            transition: all 0.3s ease; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
-          }
-          button:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4); }
-          button:active { transform: translateY(0); }
-          button:disabled { background: #1e293b; color: #475569; cursor: not-allowed; transform: none; box-shadow: none; }
+          @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-          .error { color: #f43f5e; font-size: 12px; margin-top: -22px; margin-bottom: 22px; text-align: left; display: none; font-weight: 500; }
-          #loader { display: none; border: 3px solid rgba(255,255,255,0.05); border-top: 3px solid var(--primary); border-radius: 50%; width: 28px; height: 28px; animation: spin 0.8s linear infinite; margin: 20px auto; }
+          h2 { font-size: 22px; font-weight: 600; margin: 0 0 8px 0; }
+          .desc { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
+
+          .source-type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; width: 100%; }
+          .toggle-btn { 
+            padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; 
+            text-align: center; cursor: pointer; transition: 0.2s; font-weight: 500; color: var(--text-muted);
+          }
+          .toggle-btn.active { border-color: var(--primary); color: var(--primary); background: #f0faf7; }
+
+          .input-group { position: relative; margin-bottom: 20px; width: 100%; box-sizing: border-box;}
+          .input-group label { position: absolute; top: -9px; left: 12px; background: white; padding: 0 5px; font-size: 11px; color: var(--text-muted); font-weight: 600; }
+          input, select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; color: var(--text-main); }
+          
+          .preview-box { 
+            background: #fdfdfd; border: 1px solid var(--border); border-radius: 8px; 
+            text-align: left; padding: 15px; max-height: 200px; overflow-y: auto; width: 100%; box-sizing: border-box;
+          }
+          .preview-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f8fafc; font-size: 13px; color: var(--text-main); }
+          .preview-item:last-child { border: none; }
+          .icon { margin-right: 12px; font-size: 16px; }
+
+          .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; width: 100%; }
+          .spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
           @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-          
-          .success-badge { background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 6px 14px; border-radius: 100px; font-size: 12px; display: inline-block; margin-bottom: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+          .footer { padding: 20px 50px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 16px; background: #fff; }
+          .btn { padding: 12px 28px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: 0.2s; letter-spacing: 0.5px; }
+          .btn-secondary { background: none; border: 1px solid var(--border); color: var(--text-muted); }
+          .btn-primary { background: var(--primary); border: none; color: white; }
+          .btn-primary:disabled { background: #e2e8f0; cursor: not-allowed; color: #94a3b8; }
         </style>
       </head>
       <body>
-        <div class="glass-card">
-          <div id="form-ui">
-            <h2>Copy Template</h2>
-            <p>Select a folder structure to clone into your personal Google Drive.</p>
-            
-            <span class="label">Source Template</span>
-            <select id="templateId">${templateOptions}</select>
-
-            <span class="label">New Folder Name</span>
-            <input type="text" id="folderName" placeholder="Enter folder name..." oninput="validateName()">
-            <div id="errorMsg" class="error">Invalid name: Avoid / \\ : * ? " < > |</div>
-
-            <button id="submitBtn" onclick="process()">Create Copy in My Drive</button>
-            <div id="loader"></div>
+        <div class="modal-container">
+          <div class="stepper">
+            <div class="step active" id="s1-label"><span class="step-num">1</span> Source</div>
+            <div class="step" id="s2-label"><span class="step-num">2</span> Basic Info</div>
+            <div class="step" id="s3-label"><span class="step-num">3</span> Preview</div>
+            <div class="step" id="s4-label"><span class="step-num">4</span> Copying</div>
+            <div class="step" id="s5-label"><span class="step-num">5</span> Success</div>
           </div>
 
-          <div id="success-ui" style="display:none;">
-            <div class="success-badge">Success</div>
-            <h2>Folder Ready</h2>
-            <p>Your directory has been generated. You can now access it in your Drive.</p>
-            <button onclick="window.open(document.getElementById('folderUrl').href, '_blank')">Open Folder</button>
-            <a id="folderUrl" href="#" style="display:none;"></a>
-            <p style="margin-top:30px;"><a href="javascript:location.reload()" style="color:#818cf8; text-decoration:none; font-weight:600; font-size: 13px;">Create another copy</a></p>
+          <div class="content">
+            <div class="step-pane active" id="step1">
+              <h2>Select Source Template</h2>
+              <p class="desc">Select a folder from the root of your Drive or enter a specific Folder ID.</p>
+              
+              <div class="source-type-toggle">
+                <div class="toggle-btn active" id="btn-root" onclick="setSourceType('root')">My Drive</div>
+                <div class="toggle-btn" id="btn-manual" onclick="setSourceType('manual')">Folder ID</div>
+              </div>
+
+              <div id="ui-root">
+                <div class="input-group">
+                  <label>Select Parent Folder</label>
+                  <select id="selectRoot" onchange="loadSubfolders(this.value)">
+                    <option value="" selected disabled>Choose a folder...</option>
+                    ${rootOptions}
+                  </select>
+                </div>
+                <div class="input-group" id="ui-subfolder" style="display:none; margin-top: 10px;">
+                  <label>Select Subfolder (Optional)</label>
+                  <select id="selectSub">
+                    <option value="" selected>Use Parent Folder</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="ui-manual" style="display:none;">
+                <div class="input-group">
+                  <label>Enter Folder ID</label>
+                  <input type="text" id="manualId" placeholder="Paste Drive folder ID here..." oninput="checkStep1()">
+                </div>
+              </div>
+            </div>
+
+            <div class="step-pane" id="step2">
+              <h2>Project Details</h2>
+              <p class="desc">Provide a name for the new replicated folder instance.</p>
+              <div class="input-group">
+                <label>New Folder Name</label>
+                <input type="text" id="folderName" placeholder="e.g. Project Workspace A" oninput="checkStep2()">
+              </div>
+            </div>
+
+            <div class="step-pane" id="step3">
+              <h2>Review Template Contents</h2>
+              <p class="desc">Reviewing items from: <span id="source-name-display" style="font-weight: 600;"></span></p>
+              <div id="preview-list" class="preview-box"></div>
+            </div>
+
+            <div class="step-pane" id="step4">
+              <div class="loader-container">
+                <div class="spinner"></div>
+                <h2>Replicating Template Structure...</h2>
+                <p class="desc">Synchronizing file directory and duplicating assets to your Root Drive.</p>
+              </div>
+            </div>
+
+            <div class="step-pane" id="step5" style="text-align: center; width: 100%;">
+              <div style="margin-bottom: 25px; margin-top: 20px;">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" stroke="#63C2A6" stroke-width="2"/>
+                  <path d="M8 12L11 15L16 9" stroke="#63C2A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h2>Replication Complete</h2>
+              <p class="desc">Your project environment has been provisioned and is ready for use.</p>
+              <button class="btn btn-primary" id="openFolderBtn">Open Destination Folder</button>
+              <p style="margin-top:25px;">
+                <a href="#" onclick="resetWizard(); return false;" style="color:var(--primary); text-decoration:none; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">
+                  Create Another Instance
+                </a>
+              </p>
+            </div>
+          </div>
+
+          <div class="footer" id="main-footer">
+            <button class="btn btn-secondary" id="backBtn" onclick="goBack()" style="display:none;">Back</button>
+            <button class="btn btn-primary" id="nextBtn" onclick="goNext()" disabled>Next</button>
           </div>
         </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
         <script>
-          const choices = new Choices('#templateId', {
-            searchEnabled: true,
-            itemSelectText: '',
-            shouldSort: false,
-            placeholderValue: 'Search templates...'
-          });
+          let currentStep = 1;
+          let sourceType = 'root';
+          const data = { name: '', sourceId: '', url: '' };
 
-          function validateName() {
-            const name = document.getElementById('folderName').value;
-            const regex = /^[^\/\\:*?"<>|]+$/;
-            const isValid = regex.test(name) && name.trim().length > 0;
-            document.getElementById('errorMsg').style.display = (name && !isValid) ? 'block' : 'none';
-            document.getElementById('submitBtn').disabled = !isValid;
-            return isValid;
+          function playClick() {
+            try {
+              const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+              const oscillator = audioCtx.createOscillator();
+              const gainNode = audioCtx.createGain();
+              oscillator.type = 'triangle';
+              oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); 
+              oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+              gainNode.gain.setValueAtTime(0.015, audioCtx.currentTime); 
+              gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+              oscillator.connect(gainNode);
+              gainNode.connect(audioCtx.destination);
+              oscillator.start();
+              oscillator.stop(audioCtx.currentTime + 0.05);
+            } catch (e) {}
           }
 
-          function process() {
-            const name = document.getElementById('folderName').value;
-            const id = document.getElementById('templateId').value;
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('loader').style.display = 'block';
+          function resetWizard() {
+            playClick();
+            currentStep = 1;
+            data.name = '';
+            data.sourceId = '';
+            data.url = '';
             
-            google.script.run
-              .withSuccessHandler(url => {
-                document.getElementById('form-ui').style.display = 'none';
-                document.getElementById('success-ui').style.display = 'block';
-                document.getElementById('folderUrl').href = url;
-              })
-              .startCopyProcess(id, name);
+            // Clear inputs
+            document.getElementById('folderName').value = '';
+            document.getElementById('manualId').value = '';
+            document.getElementById('selectRoot').selectedIndex = 0;
+            document.getElementById('ui-subfolder').style.display = 'none';
+            document.getElementById('preview-list').innerHTML = '';
+            
+            showStep(1);
           }
+
+          function setSourceType(type) {
+            sourceType = type;
+            ['root', 'manual'].forEach(t => {
+              document.getElementById('ui-' + t).style.display = (t === type) ? 'block' : 'none';
+              document.getElementById('btn-' + t).classList.toggle('active', t === type);
+            });
+            checkStep1();
+          }
+
+          function loadSubfolders(parentId) {
+            if (!parentId) return;
+            const subUI = document.getElementById('ui-subfolder');
+            const subSelect = document.getElementById('selectSub');
+            subSelect.innerHTML = '<option value="" selected>Loading subfolders...</option>';
+            subUI.style.display = 'block';
+            google.script.run.withSuccessHandler(folders => {
+              let html = '<option value="" selected>Use Parent Folder</option>';
+              folders.forEach(f => { html += \`<option value="\${f.id}">\${f.name}</option>\`; });
+              subSelect.innerHTML = html;
+              checkStep1();
+            }).getSubfolders(parentId);
+          }
+
+          function checkStep1() {
+            if (sourceType === 'manual') {
+              const id = document.getElementById('manualId').value;
+              document.getElementById('nextBtn').disabled = id.trim().length < 10;
+            } else {
+              const parentId = document.getElementById('selectRoot').value;
+              document.getElementById('nextBtn').disabled = !parentId;
+            }
+          }
+
+          function checkStep2() {
+            const name = document.getElementById('folderName').value;
+            document.getElementById('nextBtn').disabled = name.trim().length === 0;
+          }
+
+          function updateStepper() {
+            for(let i=1; i<=5; i++) {
+              const el = document.getElementById('s' + i + '-label');
+              el.className = 'step';
+              if(i === currentStep) el.classList.add('active');
+              if(i < currentStep) el.classList.add('completed');
+            }
+          }
+
+          function showStep(step) {
+            document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            updateStepper();
+            const footer = document.getElementById('main-footer');
+            const backBtn = document.getElementById('backBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            if(step === 1) { 
+              footer.style.display = 'flex'; backBtn.style.display = 'none'; nextBtn.innerText = 'Next'; checkStep1();
+            } else if(step === 2) {
+              footer.style.display = 'flex'; backBtn.style.display = 'block'; nextBtn.innerText = 'Next'; checkStep2();
+            } else if (step === 3) {
+              footer.style.display = 'flex'; backBtn.style.display = 'block'; nextBtn.innerText = 'Confirm & Create';
+            } else { footer.style.display = 'none'; }
+          }
+
+          function goNext() {
+            playClick();
+            if (currentStep === 1) {
+              if (sourceType === 'root') {
+                const subId = document.getElementById('selectSub').value;
+                data.sourceId = subId ? subId : document.getElementById('selectRoot').value;
+              } else { data.sourceId = document.getElementById('manualId').value; }
+              currentStep = 2; showStep(2);
+            } else if (currentStep === 2) {
+              data.name = document.getElementById('folderName').value;
+              document.getElementById('preview-list').innerHTML = '<p style="font-size:12px; color:#94a3b8;">Fetching preview...</p>';
+              currentStep = 3; showStep(3);
+              google.script.run.withSuccessHandler(res => {
+                document.getElementById('source-name-display').innerText = res.folderName;
+                let html = '';
+                res.items.forEach(item => {
+                  const icon = item.isFolder ? '📁' : '📄';
+                  html += \`<div class="preview-item"><span class="icon">\${icon}</span> \${item.name}</div>\`;
+                });
+                document.getElementById('preview-list').innerHTML = html || 'Folder is empty';
+              }).getFolderPreview(data.sourceId);
+            } else if (currentStep === 3) {
+              currentStep = 4; showStep(4);
+              google.script.run.withSuccessHandler(url => {
+                data.url = url; currentStep = 5; showStep(5);
+                document.getElementById('openFolderBtn').onclick = () => { window.open(url, '_blank'); };
+              }).startCopyProcess(data.sourceId, data.name);
+            }
+          }
+
+          function goBack() { if (currentStep > 1) { currentStep--; showStep(currentStep); } }
         </script>
       </body>
     </html>
   `;
-  return HtmlService.createHtmlOutput(html).setTitle("Drive Template Copier");
+  return HtmlService.createHtmlOutput(html).setTitle("Enterprise Template Wizard");
 }
 
-function getTemplateList() {
+/* --- BACKEND LOGIC --- */
+
+function getUserRootFolders() {
   const list = [];
   try {
-    const parentFolder = DriveApp.getFolderById(MASTER_TEMPLATES_FOLDER_ID);
-    const subfolders = parentFolder.getFolders();
-    while (subfolders.hasNext()) {
-      const folder = subfolders.next();
-      list.push({ name: folder.getName(), id: folder.getId() });
+    const folders = DriveApp.getRootFolder().getFolders();
+    while (folders.hasNext()) {
+      const f = folders.next();
+      list.push({ name: f.getName(), id: f.getId() });
     }
   } catch (e) { console.error(e.toString()); }
   return list.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function getSubfolders(parentId) {
+  const list = [];
+  try {
+    const folders = DriveApp.getFolderById(parentId).getFolders();
+    while (folders.hasNext()) {
+      const f = folders.next();
+      list.push({ name: f.getName(), id: f.getId() });
+    }
+  } catch (e) { console.error(e.toString()); }
+  return list.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function getFolderPreview(folderId) {
+  const items = [];
+  let folderName = "Unknown Folder";
+  try {
+    const folder = DriveApp.getFolderById(folderId);
+    folderName = folder.getName();
+    const sub = folder.getFolders();
+    while (sub.hasNext()) items.push({ name: sub.next().getName(), isFolder: true });
+    const files = folder.getFiles();
+    while (files.hasNext()) items.push({ name: files.next().getName(), isFolder: false });
+  } catch (e) { console.error(e.toString()); }
+  return { items: items.slice(0, 15), folderName: folderName };
 }
 
 function startCopyProcess(templateId, newName) {
