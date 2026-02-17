@@ -1,4 +1,5 @@
-<img width="970" height="676" alt="image" src="https://github.com/user-attachments/assets/1d2bd8e0-7218-4e27-90ce-dcc558199044" />
+<img width="1024" height="796" alt="image" src="https://github.com/user-attachments/assets/fc432e78-d88c-463b-97b9-7f4217ad5c0d" />
+
 
 # Workspace Replicator for Google Drive
 
