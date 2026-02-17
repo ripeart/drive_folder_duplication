@@ -1,6 +1,5 @@
 /**
- * ENTERPRISE ONBOARDING WIZARD v3.7 - CORRECTED
- * Fixes: OUI Logo + Reduced white space (shorter modal + less padding)
+ * ENTERPRISE ONBOARDING WIZARD v3.7
  * Process: Source Selection (My Drive + Subfolders / ID) -> Details -> Preview -> Replication -> Success
  */
 
