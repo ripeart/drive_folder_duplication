@@ -1,21 +1,29 @@
 /**
- * ENTERPRISE ONBOARDING WIZARD v3.5
- * Fix: 'Create Another Instance' now resets the UI state without blanking.
- * UI: Dynamic My Drive -> Subfolder selection.
- * Audio: Refined quiet mechanical click.
+ * ENTERPRISE ONBOARDING WIZARD v3.7 - CORRECTED
+ * Fixes: OUI Logo + Reduced white space (shorter modal + less padding)
+ * Process: Source Selection (My Drive + Subfolders / ID) -> Details -> Preview -> Replication -> Success
  */
 
 function doGet() {
-  const rootFolders = getUserRootFolders();
-  const rootOptions = rootFolders.length > 0 
-    ? rootFolders.map(f => `<option value="${f.id}">${f.name}</option>`).join('')
-    : `<option value="" disabled>No folders found in Drive root</option>`;
+  var rootOptions = "";
+  try {
+    var rootFolders = getUserRootFolders();
+    if (rootFolders.length > 0) {
+      rootOptions = rootFolders.map(function(f) {
+        return '<option value="' + f.id + '">' + f.name + '</option>';
+      }).join('');
+    } else {
+      rootOptions = '<option value="" disabled>No folders found in Drive root</option>';
+    }
+  } catch (e) {
+    rootOptions = '<option value="" disabled>Error loading Drive folders</option>';
+  }
 
   const html = `
     <!DOCTYPE html>
     <html>
       <head>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
           :root {
             --primary: #63C2A6;
@@ -28,72 +36,188 @@ function doGet() {
           }
           
           body { 
-            font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+            background: linear-gradient(135deg, #e0f2f1 0%, #f1f8f6 50%, #e8f5f2 100%);
+            color: var(--text-main);
             margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh;
             overflow: hidden;
           }
 
           .modal-container {
-            background: var(--bg-card); width: 95%; max-width: 850px; height: 580px;
-            border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            width: 95%; max-width: 850px; height: 640px;
+            border-radius: 16px; 
+            box-shadow: 
+              0 0 60px rgba(99, 194, 166, 0.2),
+              0 20px 80px rgba(0, 0, 0, 0.15),
+              0 10px 40px rgba(0, 0, 0, 0.1);
+            display: flex; flex-direction: column; overflow: hidden; 
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            animation: modalFadeIn 0.6s ease-out;
+          }
+
+          @keyframes modalFadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(20px) scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+
+          .app-title {
+            padding: 20px 50px 16px 50px;
+            background: linear-gradient(135deg, rgba(99, 194, 166, 0.95) 0%, rgba(82, 168, 144, 0.95) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 2px 16px rgba(99, 194, 166, 0.2);
+          }
+          
+          .app-title h1 {
+            margin: 0;
+            color: white;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
           }
 
           .stepper {
-            display: flex; justify-content: space-between; padding: 25px 50px;
-            border-bottom: 1px solid #f1f5f9; background: #fff;
+            display: flex; justify-content: space-between; padding: 16px 50px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3); 
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
           }
           .step { display: flex; align-items: center; font-size: 11px; color: #cbd5e1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
           .step-num {
-            width: 20px; height: 20px; border-radius: 50%; background: #e2e8f0;
+            width: 20px; height: 20px; border-radius: 50%; 
+            background: rgba(226, 232, 240, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             color: white; display: flex; align-items: center; justify-content: center; margin-right: 8px; font-size: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
           }
           .step.active { color: var(--primary); }
-          .step.active .step-num { background: var(--primary); }
+          .step.active .step-num { 
+            background: linear-gradient(135deg, rgba(99, 194, 166, 0.9), rgba(82, 168, 144, 0.9));
+            box-shadow: 0 2px 8px rgba(99, 194, 166, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+          }
           .step.completed { color: var(--text-main); }
-          .step.completed .step-num { background: #94a3b8; }
+          .step.completed .step-num { 
+            background: rgba(148, 163, 184, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+          }
 
-          .content { flex-grow: 1; padding: 40px 60px; overflow-y: auto; display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
-          .step-pane { display: none; width: 100%; animation: fadeIn 0.3s ease-out; }
+          .content { flex-grow: 1; padding: 12px 60px 12px 60px; display: flex; flex-direction: column; align-items: flex-start; text-align: left; overflow: hidden; }
+          .step-pane { display: none; width: 100%; height: 100%; animation: fadeIn 0.3s ease-out; overflow-y: auto; }
           .step-pane.active { display: block; }
+          .step-pane#step4 { overflow-y: visible; } /* Step 4 doesn't scroll - only the log does */
+          .step-pane#step5 { overflow-y: visible; flex-direction: column; } /* Step 5 doesn't scroll - only the log does */
+          .step-pane#step5.active { display: flex !important; } /* Step 5 uses flex layout */
           
           @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-          h2 { font-size: 22px; font-weight: 600; margin: 0 0 8px 0; }
-          .desc { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
+          h2 { font-size: 22px; font-weight: 600; margin: 0 0 6px 0; }
+          .desc { color: var(--text-muted); font-size: 14px; margin-bottom: 16px; }
 
-          .source-type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; width: 100%; }
+          .source-type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; width: 100%; }
           .toggle-btn { 
-            padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; 
+            padding: 12px; 
+            border: 1px solid rgba(255, 255, 255, 0.4); 
+            border-radius: 10px; font-size: 13px; 
             text-align: center; cursor: pointer; transition: 0.2s; font-weight: 500; color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
           }
-          .toggle-btn.active { border-color: var(--primary); color: var(--primary); background: #f0faf7; }
+          .toggle-btn.active { 
+            border-color: var(--primary); 
+            color: var(--primary); 
+            background: rgba(99, 194, 166, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+          }
 
-          .input-group { position: relative; margin-bottom: 20px; width: 100%; box-sizing: border-box;}
-          .input-group label { position: absolute; top: -9px; left: 12px; background: white; padding: 0 5px; font-size: 11px; color: var(--text-muted); font-weight: 600; }
-          input, select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; box-sizing: border-box; color: var(--text-main); }
+          .input-group { position: relative; margin-bottom: 5px; width: 100%; box-sizing: border-box; padding-top: 18px; }
+          .input-group label { 
+            position: absolute; top: 4px; left: 4px; 
+            background: transparent; 
+            padding: 0 5px; font-size: 11px; color: var(--text-muted); font-weight: 600;
+          }
+          input, select { 
+            width: 100%; padding: 14px; 
+            border: 1px solid rgba(255, 255, 255, 0.4); 
+            border-radius: 10px; font-size: 14px; outline: none; box-sizing: border-box; color: var(--text-main);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+          }
           
           .preview-box { 
-            background: #fdfdfd; border: 1px solid var(--border); border-radius: 8px; 
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4); 
+            border-radius: 12px; 
             text-align: left; padding: 15px; max-height: 200px; overflow-y: auto; width: 100%; box-sizing: border-box;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
           }
           .preview-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f8fafc; font-size: 13px; color: var(--text-main); }
           .preview-item:last-child { border: none; }
           .icon { margin-right: 12px; font-size: 16px; }
 
           .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; width: 100%; }
-          .spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+          .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
           @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-          .footer { padding: 20px 50px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 16px; background: #fff; }
-          .btn { padding: 12px 28px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: 0.2s; letter-spacing: 0.5px; }
-          .btn-secondary { background: none; border: 1px solid var(--border); color: var(--text-muted); }
-          .btn-primary { background: var(--primary); border: none; color: white; }
-          .btn-primary:disabled { background: #e2e8f0; cursor: not-allowed; color: #94a3b8; }
+          .footer { 
+            padding: 14px 50px; 
+            border-top: 1px solid rgba(255, 255, 255, 0.3); 
+            display: flex; justify-content: flex-end; gap: 16px; 
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+          }
+          .btn { 
+            padding: 12px 28px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; text-transform: uppercase; transition: 0.2s; letter-spacing: 0.5px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          }
+          .btn-secondary { 
+            background: rgba(255, 255, 255, 0.5); 
+            border: 1px solid rgba(99, 194, 166, 0.3); 
+            color: var(--primary); 
+          }
+          .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.7);
+            border-color: var(--primary);
+          }
+          .btn-primary { 
+            background: linear-gradient(135deg, rgba(99, 194, 166, 0.9), rgba(82, 168, 144, 0.9)); 
+            border: 1px solid rgba(255, 255, 255, 0.3); 
+            color: white; 
+          }
+          .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(99, 194, 166, 1), rgba(82, 168, 144, 1));
+          }
+          .btn-primary:disabled { background: rgba(226, 232, 240, 0.5); cursor: not-allowed; color: #94a3b8; }
         </style>
       </head>
       <body>
         <div class="modal-container">
+          <div class="app-title">
+            <h1>Enterprise Template Wizard</h1>
+          </div>
           <div class="stepper">
             <div class="step active" id="s1-label"><span class="step-num">1</span> Source</div>
             <div class="step" id="s2-label"><span class="step-num">2</span> Basic Info</div>
@@ -120,7 +244,7 @@ function doGet() {
                     ${rootOptions}
                   </select>
                 </div>
-                <div class="input-group" id="ui-subfolder" style="display:none; margin-top: 10px;">
+                <div class="input-group" id="ui-subfolder" style="display:none; margin-top: 28px;">
                   <label>Select Subfolder (Optional)</label>
                   <select id="selectSub">
                     <option value="" selected>Use Parent Folder</option>
@@ -152,28 +276,34 @@ function doGet() {
             </div>
 
             <div class="step-pane" id="step4">
-              <div class="loader-container">
-                <div class="spinner"></div>
-                <h2>Replicating Template Structure...</h2>
-                <p class="desc">Synchronizing file directory and duplicating assets to your Root Drive.</p>
+              <div style="text-align: center; margin-bottom: 12px;">
+                <div class="spinner" style="margin: 0 auto 8px auto;"></div>
+                <h2 style="margin: 0 0 4px 0;">Replicating Template Structure...</h2>
+                <p class="desc" style="margin-bottom: 12px;">Synchronizing file directory and duplicating assets to your Root Drive.</p>
               </div>
+              <div id="copy-log" style="text-align: left; font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; line-height: 1.6; color: #475569; height: 260px; overflow-y: auto; width: 100%; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.4); box-sizing: border-box; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);"></div>
             </div>
 
-            <div class="step-pane" id="step5" style="text-align: center; width: 100%;">
-              <div style="margin-bottom: 25px; margin-top: 20px;">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div class="step-pane" id="step5">
+              <div style="flex-shrink: 0; text-align: center; margin-bottom: 12px;">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="12" cy="12" r="10" stroke="#63C2A6" stroke-width="2"/>
                   <path d="M8 12L11 15L16 9" stroke="#63C2A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
+                <h2 style="margin: 10px 0 4px 0;">Replication Complete</h2>
+                <p class="desc" style="margin-bottom: 12px;">Your project environment has been provisioned and is ready for use.</p>
               </div>
-              <h2>Replication Complete</h2>
-              <p class="desc">Your project environment has been provisioned and is ready for use.</p>
-              <button class="btn btn-primary" id="openFolderBtn">Open Destination Folder</button>
-              <p style="margin-top:25px;">
-                <a href="#" onclick="resetWizard(); return false;" style="color:var(--primary); text-decoration:none; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">
-                  Create Another Instance
-                </a>
-              </p>
+              
+              <div id="success-log" style="flex-shrink: 0; text-align: left; font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; line-height: 1.6; color: #475569; height: 260px; overflow-y: auto; width: 100%; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.4); box-sizing: border-box; margin-bottom: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);"></div>
+              
+              <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+                <div style="display: flex; gap: 16px; justify-content: center; align-items: center;">
+                  <button class="btn btn-primary" id="openFolderBtn">Open Destination Folder</button>
+                  <a href="#" onclick="resetWizard(); return false;" class="btn btn-secondary" style="text-decoration:none; display: inline-block;">
+                    Create Another Instance
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -208,26 +338,23 @@ function doGet() {
           function resetWizard() {
             playClick();
             currentStep = 1;
-            data.name = '';
-            data.sourceId = '';
-            data.url = '';
-            
-            // Clear inputs
+            data.name = ''; data.sourceId = ''; data.url = '';
             document.getElementById('folderName').value = '';
             document.getElementById('manualId').value = '';
             document.getElementById('selectRoot').selectedIndex = 0;
             document.getElementById('ui-subfolder').style.display = 'none';
             document.getElementById('preview-list').innerHTML = '';
-            
+            document.getElementById('copy-log').innerHTML = '';
+            document.getElementById('success-log').innerHTML = '';
             showStep(1);
           }
 
           function setSourceType(type) {
             sourceType = type;
-            ['root', 'manual'].forEach(t => {
-              document.getElementById('ui-' + t).style.display = (t === type) ? 'block' : 'none';
-              document.getElementById('btn-' + t).classList.toggle('active', t === type);
-            });
+            document.getElementById('ui-root').style.display = (type === 'root') ? 'block' : 'none';
+            document.getElementById('ui-manual').style.display = (type === 'manual') ? 'block' : 'none';
+            document.getElementById('btn-root').classList.toggle('active', type === 'root');
+            document.getElementById('btn-manual').classList.toggle('active', type === 'manual');
             checkStep1();
           }
 
@@ -237,9 +364,9 @@ function doGet() {
             const subSelect = document.getElementById('selectSub');
             subSelect.innerHTML = '<option value="" selected>Loading subfolders...</option>';
             subUI.style.display = 'block';
-            google.script.run.withSuccessHandler(folders => {
+            google.script.run.withSuccessHandler(function(folders) {
               let html = '<option value="" selected>Use Parent Folder</option>';
-              folders.forEach(f => { html += \`<option value="\${f.id}">\${f.name}</option>\`; });
+              folders.forEach(function(f) { html += '<option value="' + f.id + '">' + f.name + '</option>'; });
               subSelect.innerHTML = html;
               checkStep1();
             }).getSubfolders(parentId);
@@ -270,7 +397,7 @@ function doGet() {
           }
 
           function showStep(step) {
-            document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.step-pane').forEach(function(p) { p.classList.remove('active'); });
             document.getElementById('step' + step).classList.add('active');
             updateStepper();
             const footer = document.getElementById('main-footer');
@@ -285,6 +412,13 @@ function doGet() {
             } else { footer.style.display = 'none'; }
           }
 
+          function addLog(message) {
+            const logDiv = document.getElementById('copy-log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += '<div>[' + time + '] ' + message + '</div>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+          }
+
           function goNext() {
             playClick();
             if (currentStep === 1) {
@@ -297,21 +431,95 @@ function doGet() {
               data.name = document.getElementById('folderName').value;
               document.getElementById('preview-list').innerHTML = '<p style="font-size:12px; color:#94a3b8;">Fetching preview...</p>';
               currentStep = 3; showStep(3);
-              google.script.run.withSuccessHandler(res => {
+              google.script.run.withSuccessHandler(function(res) {
                 document.getElementById('source-name-display').innerText = res.folderName;
                 let html = '';
-                res.items.forEach(item => {
+                res.items.forEach(function(item) {
                   const icon = item.isFolder ? '📁' : '📄';
-                  html += \`<div class="preview-item"><span class="icon">\${icon}</span> \${item.name}</div>\`;
+                  html += '<div class="preview-item"><span class="icon">' + icon + '</span> ' + item.name + '</div>';
                 });
                 document.getElementById('preview-list').innerHTML = html || 'Folder is empty';
               }).getFolderPreview(data.sourceId);
             } else if (currentStep === 3) {
               currentStep = 4; showStep(4);
-              google.script.run.withSuccessHandler(url => {
-                data.url = url; currentStep = 5; showStep(5);
-                document.getElementById('openFolderBtn').onclick = () => { window.open(url, '_blank'); };
-              }).startCopyProcess(data.sourceId, data.name);
+              document.getElementById('copy-log').innerHTML = '';
+              addLog('Starting copy process...');
+              addLog('');
+              addLog('New Folder Name: ' + data.name);
+              addLog('Destination: My Drive');
+              addLog('');
+              addLog('Scanning source folder...');
+              
+              // First, get the list of items to copy
+              google.script.run.withSuccessHandler(function(scanResult) {
+                console.log('Scan result:', scanResult);
+                addLog('Source Folder: ' + scanResult.sourceFolderName);
+                addLog('Found ' + scanResult.items.length + ' items to copy');
+                addLog('');
+                addLog('Creating destination folder...');
+                
+                // Create destination folder
+                google.script.run.withSuccessHandler(function(destResult) {
+                  addLog('Destination folder created');
+                  addLog('');
+                  addLog('Starting to copy files...');
+                  addLog('');
+                  
+                  var items = scanResult.items;
+                  var currentIndex = 0;
+                  
+                  function copyNextItem() {
+                    if (currentIndex >= items.length) {
+                      // All done!
+                      addLog('');
+                      addLog('Copy operation completed successfully!');
+                      addLog('');
+                      addLog('Summary:');
+                      addLog('  Total items copied: ' + items.length);
+                      addLog('  Location: My Drive > ' + data.name);
+                      addLog('');
+                      
+                      // Copy log to success page
+                      var successLog = document.getElementById('success-log');
+                      successLog.innerHTML = document.getElementById('copy-log').innerHTML;
+                      
+                      data.url = destResult.url;
+                      setTimeout(function() {
+                        currentStep = 5; showStep(5);
+                        successLog.scrollTop = successLog.scrollHeight;
+                      }, 800);
+                      document.getElementById('openFolderBtn').onclick = function() { window.open(destResult.url, '_blank'); };
+                      return;
+                    }
+                    
+                    var item = items[currentIndex];
+                    var indent = item.path.split('/').filter(function(p) { return p; }).map(function() { return '  '; }).join('');
+                    
+                    if (item.type === 'folder') {
+                      addLog(indent + 'Creating folder: ' + item.name);
+                    } else {
+                      addLog(indent + 'Copying file: ' + item.name);
+                    }
+                    
+                    google.script.run.withSuccessHandler(function(result) {
+                      currentIndex++;
+                      copyNextItem();
+                    }).withFailureHandler(function(error) {
+                      addLog(indent + '  ERROR: ' + error.message);
+                      currentIndex++;
+                      copyNextItem();
+                    }).copyItem(item.id, destResult.id, item.type, item.path);
+                  }
+                  
+                  copyNextItem();
+                  
+                }).withFailureHandler(function(error) {
+                  addLog('ERROR creating destination folder: ' + error.message);
+                }).createDestinationFolder(data.name);
+                
+              }).withFailureHandler(function(error) {
+                addLog('ERROR scanning source folder: ' + error.message);
+              }).getItemsToCopy(data.sourceId);
             }
           }
 
@@ -328,59 +536,273 @@ function doGet() {
 function getUserRootFolders() {
   const list = [];
   try {
+    Logger.log("Fetching root folders...");
     const folders = DriveApp.getRootFolder().getFolders();
     while (folders.hasNext()) {
       const f = folders.next();
       list.push({ name: f.getName(), id: f.getId() });
     }
-  } catch (e) { console.error(e.toString()); }
+    Logger.log("Found " + list.length + " root folders");
+  } catch (e) { 
+    Logger.log("Root Folder Fetch Error: " + e.toString());
+    Logger.log("Stack trace: " + e.stack);
+  }
   return list.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function getSubfolders(parentId) {
   const list = [];
   try {
+    Logger.log("Fetching subfolders for parent ID: " + parentId);
     const folders = DriveApp.getFolderById(parentId).getFolders();
     while (folders.hasNext()) {
       const f = folders.next();
       list.push({ name: f.getName(), id: f.getId() });
     }
-  } catch (e) { console.error(e.toString()); }
+    Logger.log("Found " + list.length + " subfolders");
+  } catch (e) { 
+    Logger.log("Subfolder Fetch Error: " + e.toString());
+    Logger.log("Stack trace: " + e.stack);
+  }
   return list.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+// Test function to verify logging works
+function testLogging() {
+  Logger.log("=== TEST FUNCTION STARTED ===");
+  Logger.log("If you can see this, logging is working correctly!");
+  Logger.log("Current time: " + new Date().toString());
+  Logger.log("=== TEST FUNCTION COMPLETED ===");
+  return "Test complete - check execution log";
 }
 
 function getFolderPreview(folderId) {
   const items = [];
   let folderName = "Unknown Folder";
   try {
+    Logger.log("Fetching preview for folder ID: " + folderId);
     const folder = DriveApp.getFolderById(folderId);
     folderName = folder.getName();
+    Logger.log("Folder name: " + folderName);
+    
     const sub = folder.getFolders();
-    while (sub.hasNext()) items.push({ name: sub.next().getName(), isFolder: true });
+    while (sub.hasNext()) {
+      items.push({ name: sub.next().getName(), isFolder: true });
+    }
+    
     const files = folder.getFiles();
-    while (files.hasNext()) items.push({ name: files.next().getName(), isFolder: false });
-  } catch (e) { console.error(e.toString()); }
+    while (files.hasNext()) {
+      items.push({ name: files.next().getName(), isFolder: false });
+    }
+    
+    Logger.log("Preview items found: " + items.length);
+  } catch (e) { 
+    Logger.log("Preview Fetch Error: " + e.toString());
+    Logger.log("Stack trace: " + e.stack);
+  }
   return { items: items.slice(0, 15), folderName: folderName };
 }
 
+function getItemsToCopy(folderId) {
+  try {
+    Logger.log("Getting items list for folder ID: " + folderId);
+    const sourceFolder = DriveApp.getFolderById(folderId);
+    const items = [];
+    
+    function scanFolder(folder, path) {
+      path = path || '';
+      
+      const files = folder.getFiles();
+      while (files.hasNext()) {
+        const file = files.next();
+        items.push({
+          type: 'file',
+          name: file.getName(),
+          id: file.getId(),
+          path: path
+        });
+      }
+      
+      const subFolders = folder.getFolders();
+      while (subFolders.hasNext()) {
+        const sub = subFolders.next();
+        items.push({
+          type: 'folder',
+          name: sub.getName(),
+          id: sub.getId(),
+          path: path
+        });
+        scanFolder(sub, path + sub.getName() + '/');
+      }
+    }
+    
+    scanFolder(sourceFolder);
+    
+    Logger.log("Found " + items.length + " items to copy");
+    
+    return {
+      sourceFolderName: sourceFolder.getName(),
+      items: items
+    };
+  } catch (e) {
+    Logger.log("ERROR in getItemsToCopy: " + e.toString());
+    throw new Error("Failed to scan folder: " + e.message);
+  }
+}
+
+function createDestinationFolder(newName) {
+  try {
+    Logger.log("Creating destination folder: " + newName);
+    const rootFolder = DriveApp.getRootFolder();
+    const newFolder = rootFolder.createFolder(newName);
+    Logger.log("Destination folder created with ID: " + newFolder.getId());
+    return {
+      url: newFolder.getUrl(),
+      id: newFolder.getId()
+    };
+  } catch (e) {
+    Logger.log("ERROR in createDestinationFolder: " + e.toString());
+    throw new Error("Failed to create folder: " + e.message);
+  }
+}
+
+function copyItem(sourceId, destId, itemType, itemPath) {
+  try {
+    const destFolder = DriveApp.getFolderById(destId);
+    
+    // Navigate to the correct subfolder if path is specified
+    var targetFolder = destFolder;
+    if (itemPath && itemPath !== '') {
+      const pathParts = itemPath.split('/').filter(function(p) { return p; });
+      for (var i = 0; i < pathParts.length; i++) {
+        var found = false;
+        var folders = targetFolder.getFolders();
+        while (folders.hasNext()) {
+          var folder = folders.next();
+          if (folder.getName() === pathParts[i]) {
+            targetFolder = folder;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          targetFolder = targetFolder.createFolder(pathParts[i]);
+        }
+      }
+    }
+    
+    if (itemType === 'file') {
+      const file = DriveApp.getFileById(sourceId);
+      file.makeCopy(file.getName(), targetFolder);
+      return { success: true };
+    } else if (itemType === 'folder') {
+      // Folder creation is handled in the path navigation above
+      return { success: true };
+    }
+  } catch (e) {
+    Logger.log("ERROR in copyItem: " + e.toString());
+    return { success: false, error: e.message };
+  }
+}
+
 function startCopyProcess(templateId, newName) {
-  const sourceFolder = DriveApp.getFolderById(templateId);
-  const rootFolder = DriveApp.getRootFolder();
-  const newFolder = rootFolder.createFolder(newName);
-  copyRecursive(sourceFolder, newFolder);
-  return newFolder.getUrl();
+  try {
+    Logger.log("Starting copy process for folder ID: " + templateId);
+    Logger.log("Destination name: " + newName);
+    
+    const sourceFolder = DriveApp.getFolderById(templateId);
+    Logger.log("Source folder found: " + sourceFolder.getName());
+    
+    const rootFolder = DriveApp.getRootFolder();
+    const newFolder = rootFolder.createFolder(newName);
+    Logger.log("Destination folder created: " + newFolder.getName());
+    
+    var copyLog = [];
+    copyRecursiveWithLog(sourceFolder, newFolder, copyLog);
+    
+    Logger.log("Copy process completed successfully");
+    Logger.log("Copy log entries: " + copyLog.length);
+    Logger.log("Destination URL: " + newFolder.getUrl());
+    
+    // Ensure we have a valid log array
+    if (!copyLog || copyLog.length === 0) {
+      copyLog = ['Source folder was empty - no files to copy'];
+    }
+    
+    return {
+      url: newFolder.getUrl(),
+      log: copyLog,
+      folderName: newName,
+      sourceFolderName: sourceFolder.getName()
+    };
+  } catch (e) { 
+    Logger.log("ERROR in startCopyProcess: " + e.toString()); 
+    Logger.log("Stack trace: " + e.stack);
+    throw new Error("Copy failed: " + e.message);
+  }
 }
 
 function copyRecursive(source, target) {
-  const files = source.getFiles();
-  while (files.hasNext()) {
-    const file = files.next();
-    file.makeCopy(file.getName(), target);
+  try {
+    Logger.log("Copying contents of: " + source.getName());
+    
+    const files = source.getFiles();
+    var fileCount = 0;
+    while (files.hasNext()) {
+      const file = files.next();
+      Logger.log("  Copying file: " + file.getName());
+      file.makeCopy(file.getName(), target);
+      fileCount++;
+    }
+    Logger.log("  Total files copied: " + fileCount);
+    
+    const subFolders = source.getFolders();
+    var folderCount = 0;
+    while (subFolders.hasNext()) {
+      const sub = subFolders.next();
+      Logger.log("  Creating subfolder: " + sub.getName());
+      const newSub = target.createFolder(sub.getName());
+      copyRecursive(sub, newSub);
+      folderCount++;
+    }
+    Logger.log("  Total subfolders copied: " + folderCount);
+  } catch (e) {
+    Logger.log("ERROR in copyRecursive: " + e.toString());
+    throw e;
   }
-  const subFolders = source.getFolders();
-  while (subFolders.hasNext()) {
-    const sub = subFolders.next();
-    const newSub = target.createFolder(sub.getName());
-    copyRecursive(sub, newSub);
+}
+
+function copyRecursiveWithLog(source, target, log, indent) {
+  try {
+    indent = indent || '';
+    Logger.log("copyRecursiveWithLog called for: " + source.getName() + " with indent: '" + indent + "'");
+    
+    const files = source.getFiles();
+    var fileCount = 0;
+    while (files.hasNext()) {
+      const file = files.next();
+      var logEntry = indent + 'Copying file: ' + file.getName();
+      log.push(logEntry);
+      Logger.log(logEntry);
+      file.makeCopy(file.getName(), target);
+      fileCount++;
+    }
+    Logger.log("Copied " + fileCount + " files");
+    
+    const subFolders = source.getFolders();
+    var folderCount = 0;
+    while (subFolders.hasNext()) {
+      const sub = subFolders.next();
+      var logEntry = indent + 'Creating subfolder: ' + sub.getName();
+      log.push(logEntry);
+      Logger.log(logEntry);
+      const newSub = target.createFolder(sub.getName());
+      copyRecursiveWithLog(sub, newSub, log, indent + '  ');
+      folderCount++;
+    }
+    Logger.log("Copied " + folderCount + " subfolders");
+  } catch (e) {
+    Logger.log("ERROR in copyRecursiveWithLog: " + e.toString());
+    throw e;
   }
 }
